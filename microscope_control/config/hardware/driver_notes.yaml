@@ -1,0 +1,18 @@
+# Hardware notes for TMC2209 + NEMA 17 stack
+
+hardware_notes:
+  driver: TMC2209
+  microstep_recommendation: "1/8 or 1/16 is sufficient for focus/objective"
+  vref_procedure: >
+    Adjust Vref with only 5 V logic powered (VMOT off). Measure between GND and
+    potentiometer; target approximately 0.60 V for 1.7 A motors with Rsense 0.11 Ohm.
+  power:
+    logic: "USB 5 V from host"
+    motors: "12 V / 6 A class supply (e.g. Mean Well LRS-75-12)"
+    common_gnd: "Tie Arduino GND to driver GND"
+  coupling:
+    motor_shaft_mm: 5
+    knob_adapter_mm: 4
+    coupling: "5x4 mm flexible coupling + adapter sleeve"
+  enclosure: "Plastic control box; no PE required for insulating enclosure"
+  terminal_blocks: "KF128-4P motor / power, KF128-3P STEP/DIR"

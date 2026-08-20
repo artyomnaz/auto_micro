@@ -1,0 +1,210 @@
+# Default microscope control configuration
+# Target: Levenhuk MED 30T + Arduino UNO R3 + 3x NEMA 17 + TMC2209
+
+device:
+  name: levenhuk_med30t_automation
+  firmware_id: microscope_controller
+  protocol_version: "1.1"
+  description: "Open-source manipulation engine for focus, magnification, illumination"
+
+connection: firmware_runtime   # serial | firmware_runtime
+
+serial:
+  port: COM3
+  baudrate: 115200
+  timeout_s: 2.0
+  boot_delay_s: 2.0
+  write_timeout_s: 2.0
+  reset_on_connect: true
+
+logging:
+  level: INFO                  # DEBUG | INFO | WARNING | ERROR
+  log_commands: true
+  log_status_polls: false
+  file: null                   # e.g. logs/microscope_control.log
+
+# CNC-shield-style pin map for UNO + 3x TMC2209 (STEP/DIR/EN + microstep select).
+pins:
+  shared_enable:
+    pin: 8
+    active_low: true
+  focus:
+    step: 2
+    dir: 5
+    # TMC2209 MS1/MS2/MS3 for 1/16: typically HIGH/HIGH/HIGH (board-dependent)
+    ms1: 9
+    ms2: 10
+    ms3: 11
+  magnification:
+    step: 3
+    dir: 6
+    ms1: 9
+    ms2: 10
+    ms3: 11
+  illumination:
+    step: 4
+    dir: 7
+    ms1: 9
+    ms2: 10
+    ms3: 11
+
+# Microstep mode programmed on MS pins at boot (firmware) and used for unit math (host).
+microstepping:
+  mode: 16                     # 1, 2, 4, 8, 16, 32, 64, 128, 256 (TMC2209 capable)
+  # Logical levels for MS1/MS2/MS3 when mode=16 on many SilentStepStick-compatible boards
+  ms_levels:
+    "1": [0, 0, 0]
+    "2": [1, 0, 0]
+    "4": [0, 1, 0]
+    "8": [1, 1, 0]
+    "16": [1, 1, 1]
+
+motors:
+  model: NEMA17
+  full_steps_per_rev: 200      # 1.8°
+  rated_current_a: 1.7
+  holding_torque_kgf_cm: 4.0
+  supply_voltage_v: 12.0
+  supply_current_a: 6.0        # LRS-75-12 class PSU
+  driver: TMC2209
+  sense_resistor_ohm: 0.11
+  vref_target_v: 0.60
+  vref_calculated_v: 0.53
+  heatsink_required: true
+
+calibration:
+  focus:
+    leadscrew_pitch_mm: 1.0
+    gear_ratio: 1.0            # motor_revs / leadscrew_revs (>1 if reduction)
+    coupling: "5mm_x_4mm"
+  magnification:
+    steps_per_click: 3200      # empirical turret/zoom detent in microsteps
+    positions:                 # named objective / zoom stops
+      "4x": 0
+      "10x": 3200
+      "40x": 6400
+      "100x": 9600
+  illumination:
+    steps_per_level: 320
+    min_level: 0
+    max_level: 100
+    # level 0..100 maps linearly into axis soft range
+
+axes:
+  F:
+    name: focus
+    role: z_focus
+    invert_direction: false
+    min_steps: -200000
+    max_steps: 200000
+    home_position: 0
+    default_speed_sps: 800
+    default_accel_sps2: 1600
+    max_speed_sps: 2500
+    max_accel_sps2: 5000
+    jog_steps: 32
+    fine_jog_steps: 3
+  M:
+    name: magnification
+    role: objective_or_zoom
+    invert_direction: false
+    min_steps: -100000
+    max_steps: 100000
+    home_position: 0
+    default_speed_sps: 600
+    default_accel_sps2: 1200
+    max_speed_sps: 2000
+    max_accel_sps2: 4000
+    jog_steps: 3200
+    fine_jog_steps: 200
+  I:
+    name: illumination
+    role: lamp_knob
+    invert_direction: false
+    min_steps: 0
+    max_steps: 32000
+    home_position: 0
+    default_speed_sps: 400
+    default_accel_sps2: 800
+    max_speed_sps: 1500
+    max_accel_sps2: 3000
+    jog_steps: 320
+    fine_jog_steps: 64
+
+motion_profiles:
+  default: coarse
+  coarse:
+    description: "Fast travel between fields / coarse focus"
+    speed_scale: 1.0
+    accel_scale: 1.0
+  fine:
+    description: "Fine focus near specimen plane"
+    speed_scale: 0.25
+    accel_scale: 0.35
+  acquisition:
+    description: "Settled moves before image capture (low vibration)"
+    speed_scale: 0.15
+    accel_scale: 0.20
+  homing:
+    description: "Approach software home"
+    speed_scale: 0.5
+    accel_scale: 0.5
+
+safety:
+  require_enable_before_move: true
+  enforce_soft_limits: true
+  enforce_speed_caps: true
+  max_relative_move_steps:
+    F: 50000
+    M: 20000
+    I: 10000
+  settle_delay_s: 0.05         # pause after motion before declaring ready
+  emergency_disable_on_error: false
+
+controller:
+  poll_interval_s: 0.02
+  move_timeout_s: 120.0
+  apply_profile_on_open: true
+  apply_axis_defaults_on_open: true
+  sync_multi_axis: true
+
+# In-process firmware twin timing (ignored for real serial)
+firmware_runtime:
+  time_scale: 80.0             # simulated seconds per wall-clock second
+  max_tick_s: 2.0
+
+# Named acquisition geometries
+presets:
+  brightfield_10x:
+    description: "Standard brightfield at 10x"
+    F: 0
+    M: 3200
+    I: 12800
+    profile: acquisition
+  brightfield_40x:
+    description: "Higher mag brightfield"
+    F: 0
+    M: 6400
+    I: 16000
+    profile: acquisition
+  survey_low_mag:
+    description: "Quick survey at 4x"
+    F: 0
+    M: 0
+    I: 9600
+    profile: coarse
+
+diagnostics:
+  self_test_on_open: false
+  repeatability:
+    axis: F
+    amplitude_steps: 320
+    cycles: 5
+    settle_s: 0.1
+  ping_retries: 3
+  ping_retry_delay_s: 0.2
+
+# Optional include of extra YAML fragments (merged shallowly by host loader)
+includes:
+  - profiles/motion_overrides.yaml
+  - hardware/driver_notes.yaml

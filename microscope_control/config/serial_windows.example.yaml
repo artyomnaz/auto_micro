@@ -1,0 +1,19 @@
+# Standalone serial-connection example for a physical UNO on Windows.
+
+connection: serial
+serial:
+  port: COM3
+  baudrate: 115200
+  timeout_s: 2.0
+  boot_delay_s: 2.5
+
+logging:
+  level: DEBUG
+  log_commands: true
+  file: logs/serial_session.log
+
+motion_profiles:
+  default: fine
+
+diagnostics:
+  self_test_on_open: true

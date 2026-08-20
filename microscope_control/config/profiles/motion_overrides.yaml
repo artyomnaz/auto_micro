@@ -1,0 +1,11 @@
+# Optional motion overrides merged into default.yaml
+# Tune after mechanical commissioning without editing the full default tree.
+
+motion_profiles:
+  ultra_fine:
+    description: "Sub-micron focus nudges"
+    speed_scale: 0.08
+    accel_scale: 0.12
+
+controller:
+  poll_interval_s: 0.015

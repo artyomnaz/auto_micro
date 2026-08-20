@@ -1,0 +1,15 @@
+# Standalone serial-connection example for Linux hosts.
+
+connection: serial
+serial:
+  port: /dev/ttyACM0
+  baudrate: 115200
+  timeout_s: 2.0
+  boot_delay_s: 2.5
+
+logging:
+  level: INFO
+  log_commands: true
+
+motion_profiles:
+  default: acquisition
