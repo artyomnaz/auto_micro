@@ -235,15 +235,17 @@ All computational experiments were conducted under a fixed and reproducible prot
 
 ## Dataset
 
-Download: [Zenodo record 21738370](https://zenodo.org/records/21738370) ([DOI: 10.5281/zenodo.21738370](https://doi.org/10.5281/zenodo.21738370)).
+Download: [Zenodo record 21992855](https://zenodo.org/records/21992855) ([DOI: 10.5281/zenodo.21992855](https://doi.org/10.5281/zenodo.21992855)).
 
-The dataset produced with this hardware and software configuration is publicly available on Zenodo: [https://zenodo.org/records/21738370](https://zenodo.org/records/21738370).
+The dataset produced with this hardware and software configuration is publicly available on Zenodo: [https://zenodo.org/records/21992855](https://zenodo.org/records/21992855).
 
-This dataset contains 100,000 annotated microscopy images evenly distributed across five classes — background, micrococci, diplococci, streptococci, and bacilli — with 20,000 images per class. All images are accompanied by pixel-level segmentation masks and corresponding bounding-box annotations, providing complete supervision for classification, object detection, and segmentation. No corrupted images, missing annotations, or empty segmentation masks were detected during verification.
+This dataset contains 100,000 microscopic images of microorganisms belonging to five classes (micrococci, diplococci, streptococci, bacilli, and backgrounds), along with corresponding annotations in the form of binary segmentation masks. The dataset is designed for the training, validation, and comparative testing of computer vision models aimed at analyzing microbiological images acquired under diverse conditions. In addition, the dataset includes a separate collection of **full-resolution microscopy scenes** with segmentation masks and object-level bounding-box annotations.
 
 ### Dataset structure
 
-The dataset is organized into two folders:
+#### 1. Cropped microorganism images
+
+The cropped part of the dataset is organized into two folders:
 
 - `images/` — microscopy images in PNG format
 - `masks/` — corresponding binary segmentation masks in PNG format
@@ -299,6 +301,41 @@ The main characteristics of the dataset are summarized in Table 9.
 | Microscopes used | Levenhuk MED 20T, MED 25T, MED 30T, MED 35T, MED 40T |
 | Image format | JPG, PNG |
 | Mask format | PNG |
+
+#### 2. Full microscopy scenes
+
+To support **object detection and microorganism localization in realistic microscopy fields of view**, the dataset additionally provides the archive `full_scenes.zip`.
+
+Each full microscopy scene has a resolution of **3664 × 2748** pixels.
+
+The archive contains:
+
+```text
+full_scenes/
+├── images/
+├── masks/
+└── bboxes.csv
+```
+
+- `images/` — original full-resolution microscopy scenes
+- `masks/` — corresponding full-scene segmentation masks indicating microorganism regions
+- `bboxes.csv` — object-level bounding-box annotations for microorganisms visible in the full microscopy scenes
+
+The annotation file follows the structure:
+
+```text
+image,class,x,y,w,h,img_w,img_h
+```
+
+where:
+
+- `image` — filename of the corresponding full microscopy scene
+- `class` — microorganism class
+- `x`, `y` — bounding-box position (upper-left corner)
+- `w`, `h` — bounding-box width and height
+- `img_w`, `img_h` — width and height of the original microscopy scene
+
+The bounding-box coordinates are expressed in pixels.
 
 ## Results
 
